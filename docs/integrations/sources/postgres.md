@@ -239,6 +239,25 @@ This is a good solution if:
 - You are not replicating non-materialized views. Non-materialized views are not supported by xmin replication.
 </FieldAnchor>
 
+## Performance settings
+
+The connector exposes several performance-related settings in the **Performance** group of the source configuration.
+
+<FieldAnchor field="max_db_connections">
+
+**Max Concurrent Queries to Database** — Controls the maximum number of concurrent queries the connector issues against your database. Leave empty to let Airbyte choose automatically. Lower this value if the connector is consuming too many connections relative to your database's [`max_connections`](https://www.postgresql.org/docs/current/runtime-config-connection.html#GUC-MAX-CONNECTIONS) limit.
+</FieldAnchor>
+
+<FieldAnchor field="checkpoint_target_interval_seconds">
+
+**Checkpoint Target Time Interval** — How often (in seconds) a stream should checkpoint, when possible. The default is 300 seconds (5 minutes).
+</FieldAnchor>
+
+<FieldAnchor field="check_privileges">
+
+**Check Table and Column Access Privileges** — When enabled (the default), the connector queries each table individually during schema discovery to verify access privileges. Inaccessible tables, views, or columns are excluded. In databases with very large schemas, this can slow discovery; disable it if schema discovery times out.
+</FieldAnchor>
+
 ## Connecting with SSL or SSH Tunneling
 
 ### SSL Modes
@@ -381,8 +400,8 @@ If you use Airbyte Cloud and your organization restricts access to specific IPs,
 |-------------|------------|----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 3.8.0-rc.12 | 2026-06-01 | [78484](https://github.com/airbytehq/airbyte/pull/78484) | Upgrade to the latest CDK to fix a resource leak bug in CDK 1.1.7.                                                                                                         |
 | 3.8.0-rc.11 | 2026-05-14 | [78102](https://github.com/airbytehq/airbyte/pull/78102) | Remove internal github links from error messages.                                                                                                                          |
-| 3.8.0-rc.10 | 2026-05-11 | [77706](https://github.com/airbytehq/airbyte/pull/77706) | Prevent table filenode query from running outside max db connections control.                                                                                              |
-| 3.8.0-rc.9  | 2026-05-05 | [77805](https://github.com/airbytehq/airbyte/pull/77805) | Make the hidden additional properties fields in spec optional. No functional change.                                                                                       |
+| 3.8.0-rc.10 | 2026-05-12 | [77706](https://github.com/airbytehq/airbyte/pull/77706) | Prevent table filenode query from running outside max db connections control.                                                                                              |
+| 3.8.0-rc.9  | 2026-05-06 | [77805](https://github.com/airbytehq/airbyte/pull/77805) | Make the hidden additional properties fields in spec optional. No functional change.                                                                                       |
 | 3.8.0-rc.8  | 2026-04-24 | [76991](https://github.com/airbytehq/airbyte/pull/76991) | Empty schema list causes all schemas to be discovered                                                                                                                      |
 | 3.8.0-rc.7  | 2026-04-21 | [76474](https://github.com/airbytehq/airbyte/pull/76474) | Improve SSL enforcement error message on Airbyte Cloud when using insufficient SSL modes without an SSH tunnel                                                             |
 | 3.8.0-rc.6  | 2026-04-16 | [76399](https://github.com/airbytehq/airbyte/pull/76399) | Catalog validation failures result in stream failure                                                                                                                       |
