@@ -9,7 +9,7 @@ Airbyte's certified Postgres connector offers the following features:
 - All available [sync modes](https://docs.airbyte.com/cloud/core-concepts#connection-sync-modes), providing flexibility in how data is delivered to your destination.
 - Reliable replication at any table size with [checkpointing](https://docs.airbyte.com/understanding-airbyte/airbyte-protocol/#state--checkpointing) and chunking of database reads.
 
-The contents below include a 'Quick Start' guide, advanced setup steps, and reference information (data type mapping, and changelogs). See [here](https://docs.airbyte.com/integrations/sources/postgres/postgres-troubleshooting) to troubleshoot issues with the Postgres connector.
+The contents below include a 'Quick Start' guide, advanced setup steps, and reference information (data type mapping, and changelogs). For troubleshooting help, see the [Postgres troubleshooting guide](https://docs.airbyte.com/integrations/sources/postgres/postgres-troubleshooting).
 
 </HideInUI>
 
@@ -79,8 +79,8 @@ Now, click `Set up source` in the Airbyte UI. Airbyte will now test connecting t
 
 Airbyte uses [logical replication](https://www.postgresql.org/docs/current/logical-replication.html) of the Postgres write-ahead log (WAL) to incrementally capture deletes using a replication plugin:
 
-- See [here](https://docs.airbyte.com/understanding-airbyte/cdc) to learn more on how Airbyte implements CDC.
-- See [here](https://docs.airbyte.com/integrations/sources/postgres/postgres-troubleshooting#cdc-requirements) to learn more about Postgres CDC requirements and limitations.
+- For an overview of how Airbyte implements CDC, see [Change Data Capture (CDC)](https://docs.airbyte.com/understanding-airbyte/cdc).
+- For Postgres-specific CDC requirements and limitations, see the [CDC requirements](https://docs.airbyte.com/integrations/sources/postgres/postgres-troubleshooting#cdc-requirements) in the troubleshooting guide.
 
 We recommend configuring your Postgres source with CDC when:
 
@@ -143,6 +143,7 @@ Change the replication mode of your Postgres DB on Azure to `logical` using the 
 az postgres server configuration set --resource-group group --server-name server --name azure.replication_support --value logical
 az postgres server restart --resource-group group --name server
 ```
+
 ### Step 4: Create a replication slot on your Postgres database
 
 <FieldAnchor field="replication_method.replication_slot">
@@ -190,7 +191,7 @@ In your Postgres source, change the update method to `Read Changes using Change 
 
 ## Postgres Replication Methods
 
-The Postgres source currently offers 3 methods of replicating updates to your destination: CDC, xmin and standard (with a user defined cursor). Both CDC and xmin are the **most reliable methods** of updating your data.
+The Postgres source offers three replication methods: CDC, xmin, and Standard (with a user-defined cursor). CDC and xmin are the **most reliable methods** of updating your data.
 
 <FieldAnchor field="replication_method[CDC]">
 
@@ -205,11 +206,30 @@ Airbyte uses [logical replication](https://www.postgresql.org/docs/current/logic
 If your goal is to maintain a snapshot of your table in the destination but the limitations prevent you from using CDC, consider using the xmin replication method.
 </FieldAnchor>
 
+<FieldAnchor field="replication_method[Standard]">
+
+### Standard (User-Defined Cursor)
+
+Standard replication uses a cursor column you choose (such as `updated_at` or an auto-incrementing ID) to track which rows are new or updated. On each sync, the connector reads rows where the cursor value is greater than the last-synced value.
+
+This is a good solution if:
+
+- Your table has a reliable, monotonically increasing cursor column.
+- You do not need to capture deletes.
+- CDC is not available or practical for your deployment.
+
+Limitations:
+
+- Rows are only detected as new or updated if the cursor column changes. Updates to non-cursor columns are missed.
+- Deleted rows are not captured.
+- The cursor column must be indexed for reasonable performance on large tables.
+</FieldAnchor>
+
 <FieldAnchor field="replication_method[Xmin]">
 
 ### Xmin
 
-Xmin replication is the new cursor-less replication method for Postgres. Cursorless syncs enable syncing new or updated rows without explicitly choosing a cursor field. The xmin system column which (available in all Postgres databases) is used to track inserts and updates to your source data.
+Xmin replication is a cursor-less replication method for Postgres. Cursorless syncs enable syncing new or updated rows without explicitly choosing a cursor field. The `xmin` system column, available in all Postgres databases, is used to track inserts and updates to your source data.
 
 This is a good solution if:
 
@@ -291,11 +311,11 @@ To configure the Airbyte Postgres source with Entra authentication:
 
 ## Limitations & Troubleshooting
 
-To see connector limitations, or troubleshoot your Postgres connector, see more [in our Postgres troubleshooting guide](/integrations/sources/postgres/postgres-troubleshooting).
+For connector limitations and troubleshooting, see the [Postgres troubleshooting guide](/integrations/sources/postgres/postgres-troubleshooting).
 
 ## Data type mapping
 
-According to Postgres [documentation](https://www.postgresql.org/docs/14/datatype.html), Postgres data types are mapped to the following data types when synchronizing data. You can check the test values examples [here](https://github.com/airbytehq/airbyte/blob/master/airbyte-integrations/connectors/source-postgres/src/test-integration/java/io/airbyte/integrations/io/airbyte/integration_tests/sources/PostgresSourceDatatypeTest.java). If you can't find the data type you are looking for or have any problems feel free to add a new test!
+According to the Postgres [documentation](https://www.postgresql.org/docs/current/datatype.html), Postgres data types are mapped to the following data types when synchronizing data.
 
 | Postgres Type                         | Resulting Type | Notes                                                                                                                                                |
 | ------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -359,7 +379,7 @@ If you use Airbyte Cloud and your organization restricts access to specific IPs,
 
 | Version     | Date       | Pull Request                                             | Subject                                                                                                                                                                    |
 |-------------|------------|----------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 3.8.0-rc.12 | 2026-05-31 | [78484](https://github.com/airbytehq/airbyte/pull/78484) | Upgrade to the latest CDK to fix a resource leak bug in CDK 1.1.7 .                                                                                                        |
+| 3.8.0-rc.12 | 2026-06-01 | [78484](https://github.com/airbytehq/airbyte/pull/78484) | Upgrade to the latest CDK to fix a resource leak bug in CDK 1.1.7.                                                                                                         |
 | 3.8.0-rc.11 | 2026-05-14 | [78102](https://github.com/airbytehq/airbyte/pull/78102) | Remove internal github links from error messages.                                                                                                                          |
 | 3.8.0-rc.10 | 2026-05-11 | [77706](https://github.com/airbytehq/airbyte/pull/77706) | Prevent table filenode query from running outside max db connections control.                                                                                              |
 | 3.8.0-rc.9  | 2026-05-05 | [77805](https://github.com/airbytehq/airbyte/pull/77805) | Make the hidden additional properties fields in spec optional. No functional change.                                                                                       |
